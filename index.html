@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script>
+       // Import the functions you need from the SDKs you need
+		import { initializeApp } from "firebase/app";
+		import { getAnalytics } from "firebase/analytics";
+		// TODO: Add SDKs for Firebase products that you want to use
+		// https://firebase.google.com/docs/web/setup#available-libraries
+
+		// Your web app's Firebase configuration
+		// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+		const firebaseConfig = {
+			apiKey: "AIzaSyC3AzLMtGmkMziD4ukRQAoEtHLkt-SvWlg",
+			authDomain: "cashwin-7c2f8.firebaseapp.com",
+			projectId: "cashwin-7c2f8",
+			storageBucket: "cashwin-7c2f8.firebasestorage.app",
+			messagingSenderId: "225118819239",
+			appId: "1:225118819239:web:13e102eec4c116fb68dc82",
+			measurementId: "G-TTT7XN65FX"
+		};
+
+		// Initialize Firebase
+		const app = initializeApp(firebaseConfig);
+		const analytics = getAnalytics(app); 
+    </script>
+    <!-- Database Integration -->
+    <script src="database-client.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash Win - Advanced Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 3rem auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+            padding: 2rem;
+        }
+
+        h2 {
+            color: #2d3e50;
+            text-align: center;
+        }
+
+        .input {
+            width: 100%;
+            padding: 0.7rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            border: 1px solid #b0bec5;
+            font-size: 1rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.7rem;
+            background: #2d3e50;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #009688;
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .user-table th,
+        .user-table td {
+            border: 1px solid #b0bec5;
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        .user-table th {
+            background: #e0f7fa;
+        }
+
+        .logout {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .logout button {
+            background: #b71c1c;
+        }
+
+        /* Dashboard cards */
+        .dashboard-card {
+            flex: 1;
+            min-width: 160px;
+            border-radius: 10px;
+            padding: 1.2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .dashboard-card div {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        /* Team structure styles */
+        .team-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.5rem;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .team-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .level-a {
+            background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%) !important;
+            color: #333;
+        }
+
+        .level-b {
+            background: linear-gradient(135deg, #c0c0c0 0%, #87ceeb 100%) !important;
+            color: #333;
+        }
+
+        .level-c {
+            background: linear-gradient(135deg, #cd7f32 0%, #daa520 100%) !important;
+            color: white;
+        }
+
+        .transaction-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: #f9f9f9;
+        }
+
+        .transaction-card.pending {
+            border-left: 4px solid #ff9800;
+        }
+
+        .transaction-card.approved {
+            border-left: 4px solid #4caf50;
+        }
+
+        .transaction-card.rejected {
+            border-left: 4px solid #f44336;
+        }
+
+        .status-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .referral-tree {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        #user-details-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #user-details-modal>div {
+            background: #fff;
+            padding: 2rem 2.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            min-width: 340px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: auto;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="login-section">
+        <h2>Admin Login</h2>
+        <input type="text" id="admin-username" class="input" placeholder="Admin Username">
+        <input type="password" id="admin-password" class="input" placeholder="Password">
+        <button class="btn" onclick="adminLogin()">Login</button>
+    </div>
+    <div class="container" id="dashboard-section" style="display:none;">
+        <h2>📊 Cash Win - Admin Dashboard</h2>
+        <div id="pending-requests-section" style="margin-bottom:2rem;"></div>
+        <div id="dashboard-cards" style="display:flex; gap:1.5rem; margin-bottom:2rem; flex-wrap:wrap;"></div>
+        <div id="user-list-section">
+            <h3>Registered Users</h3>
+            <table class="user-table" id="user-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Phone</th>
+                        <th>Referral Code</th>
+                        <th>Referred By</th>
+                        <th>Wallet</th>
+                        <th>Plan</th>
+                        <th>Team Size</th>
+                        <th>Bound Account</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                </tbody>
+            </table>
+        </div>
+        <div id="user-details-modal"
+            style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:3000; justify-content:center; align-items:center;">
+            <div
+                style="background:#fff; padding:2rem 2.5rem; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15); min-width:340px; max-width:90vw; max-height:90vh; overflow:auto; position:relative;">
+                <span onclick="closeUserDetails()"
+                    style="position:absolute; top:10px; right:18px; font-size:1.5rem; cursor:pointer;">&times;</span>
+                <div id="user-details-content"></div>
+            </div>
+        </div>
+        <div class="logout">
+            <button class="btn" onclick="trackReferralBonuses()" style="background:#ff9800; margin-bottom:1rem;">🎁 View
+                Referral Bonuses</button>
+            <button class="btn" onclick="adminLogout()">Logout</button>
+        </div>
+    </div>
+    <script>
+        // Database connection and admin credentials
+        let dbClient;
+        const ADMIN_USER = 'ali';
+        const ADMIN_PASS = '8090';
+
+        // Initialize database connection when page loads
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                dbClient = new DatabaseClient();
+                await dbClient.initializeDatabase();
+                console.log('Database client initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize database client:', error);
+                // Continue with localStorage fallback
+            }
+
+            // Check admin login state
+            if (localStorage.getItem('adminLoggedIn') === 'true') {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard-section').style.display = 'block';
+                await loadUsers();
+            }
+        });
+
+        async function adminLogin() {
+            const user = document.getElementById('admin-username').value.trim();
+            const pass = document.getElementById('admin-password').value.trim();
+            if (user === ADMIN_USER && pass === ADMIN_PASS) {
+                localStorage.setItem('adminLoggedIn', 'true');
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard-section').style.display = 'block';
+                await loadUsers();
+            } else {
+                alert('Invalid admin credentials!');
+            }
+        }
+        function adminLogout() {
+            localStorage.removeItem('adminLoggedIn');
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+        }
+        function loadDashboardCards(userDB) {
+            let totalUsers = Object.keys(userDB).length;
+            let totalDeposits = 0, totalWithdrawals = 0, activePlans = 0;
+            let totalReferrals = 0, totalTeamMembers = 0;
+            let planDistribution = { 600: 0, 1200: 0, 2400: 0, 4500: 0, 7000: 0, 10000: 0 };
+
+            Object.values(userDB).forEach(u => {
+                if (u.deposits) u.deposits.forEach(d => {
+                    if (d.status === 'approved') totalDeposits += Number(d.amount || 0);
+                });
+                if (u.withdrawals) u.withdrawals.forEach(w => {
+                    if (w.status === 'approved') totalWithdrawals += Number(w.amount || 0);
+                });
+                if (u.plan) {
+                    activePlans++;
+                    if (planDistribution.hasOwnProperty(u.plan)) {
+                        planDistribution[u.plan]++;
+                    }
+                }
+                if (u.friends && u.friends.length > 0) {
+                    totalReferrals++;
+                    totalTeamMembers += u.friends.length;
+                }
+            });
+
+            document.getElementById('dashboard-cards').innerHTML = `
+                <div class='dashboard-card' style='background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;'>
+                    <div>${totalUsers}</div>
+                    <div>Total Users</div>
+                </div>
+                <div class='dashboard-card' style='background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color:white;'>
+                    <div>${totalDeposits}</div>
+                    <div>Total Deposits (PKR)</div>
+                </div>
+                <div class='dashboard-card' style='background:linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color:white;'>
+                    <div>${totalWithdrawals}</div>
+                    <div>Total Withdrawals (PKR)</div>
+                </div>
+                <div class='dashboard-card' style='background:linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color:white;'>
+                    <div>${activePlans}</div>
+                    <div>Active Plans</div>
+                </div>
+                <div class='dashboard-card' style='background:linear-gradient(135deg, #fa709a 0%, #fee140 100%); color:white;'>
+                    <div>${totalReferrals}</div>
+                    <div>Users with Teams</div>
+                </div>
+                <div class='dashboard-card' style='background:linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color:#333;'>
+                    <div>${totalTeamMembers}</div>
+                    <div>Total Team Members</div>
+                </div>
+            `;
+
+            // Add plan distribution chart
+            let chartHtml = `<div style='background:white; padding:1.5rem; border-radius:10px; margin-top:1rem; box-shadow:0 2px 8px rgba(0,0,0,0.1);'>`;
+            chartHtml += `<h4 style='margin:0 0 1rem 0; color:#2d3e50;'>📊 Plan Distribution</h4>`;
+            chartHtml += `<div style='display:flex; gap:1rem; flex-wrap:wrap;'>`;
+
+            Object.entries(planDistribution).forEach(([plan, count]) => {
+                if (count > 0) {
+                    chartHtml += `<div style='background:#f8f9fa; padding:1rem; border-radius:8px; text-align:center; min-width:100px;'>`;
+                    chartHtml += `<div style='font-size:1.5rem; font-weight:bold; color:#2d3e50;'>${count}</div>`;
+                    chartHtml += `<div style='color:#666; font-size:0.9rem;'>${plan} PKR Plan</div>`;
+                    chartHtml += `</div>`;
+                }
+            });
+
+            chartHtml += `</div></div>`;
+            document.getElementById('dashboard-cards').innerHTML += chartHtml;
+        }
+        // Load users from database or localStorage fallback
+        async function loadUsers() {
+            let userDB = {};
+            try {
+                // Try to load from database first
+                if (dbClient) {
+                    userDB = await dbClient.getAllUsers() || {};
+                } else {
+                    // Fallback to localStorage
+                    userDB = JSON.parse(localStorage.getItem('userDB')) || {};
+                }
+            } catch (e) {
+                console.log('Database load failed, using localStorage fallback');
+                try {
+                    userDB = JSON.parse(localStorage.getItem('userDB')) || {};
+                } catch (e2) {
+                    userDB = {};
+                }
+            }
+            loadDashboardCards(userDB);
+            renderPendingRequests(userDB);
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '';
+            Object.keys(userDB).forEach(username => {
+                const u = userDB[username];
+                // Calculate team size (A+B+C level referrals)
+                let teamSize = 0;
+                if (u.friends && u.friends.length) {
+                    teamSize = u.friends.length;
+                }
+
+                let bound = '';
+                if (u.boundAccount) {
+                    bound = `${u.boundAccount.method || ''}<br>${u.boundAccount.name || ''}<br>${u.boundAccount.number || ''}`;
+                }
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${username}</td>
+                    <td><input type='text' value='${u.phone || ''}' style='width:90px' onchange='updateUserField("${username}","phone",this.value)'></td>
+                    <td>${u.referralCode || ''}</td>
+                    <td>${u.referredBy || ''}</td>
+                    <td><input type='number' value='${u.wallet || 0}' style='width:70px' onchange='updateUserField("${username}","wallet",this.value)'></td>
+                    <td><select onchange='updateUserField("${username}","plan",this.value)'>
+                        <option value="">None</option>
+                        <option value="600" ${u.plan == 600 ? 'selected' : ''}>600</option>
+                        <option value="1200" ${u.plan == 1200 ? 'selected' : ''}>1200</option>
+                        <option value="2400" ${u.plan == 2400 ? 'selected' : ''}>2400</option>
+                        <option value="4500" ${u.plan == 4500 ? 'selected' : ''}>4500</option>
+                        <option value="7000" ${u.plan == 7000 ? 'selected' : ''}>7000</option>
+                        <option value="10000" ${u.plan == 10000 ? 'selected' : ''}>10000</option>
+                    </select></td>
+                    <td><span style='color:#009688; font-weight:bold;'>${teamSize}</span></td>
+                    <td style='font-size:0.8rem;'>${bound}</td>
+                    <td>
+                        <button onclick='saveUserEdit("${username}")' style='background:#4caf50; color:#fff; border:none; border-radius:4px; padding:0.3rem 0.7rem; margin:0.2rem;'>Save</button>
+                        <button onclick='deleteUser("${username}")' style='background:#f44336; color:#fff; border:none; border-radius:4px; padding:0.3rem 0.7rem; margin:0.2rem;'>Delete</button>
+                        <button onclick='viewUserDetails("${username}")' style='background:#009688; color:#fff; border:none; border-radius:4px; padding:0.3rem 0.7rem; margin:0.2rem;'>Details</button>
+                        <button onclick='viewTeamStructure("${username}")' style='background:#673ab7; color:#fff; border:none; border-radius:4px; padding:0.3rem 0.7rem; margin:0.2rem;'>Team</button>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderPendingRequests(userDB) {
+            let html = '';
+            // Gather all pending deposits and withdrawals
+            let pendingDeposits = [];
+            let pendingWithdrawals = [];
+            Object.keys(userDB).forEach(username => {
+                const u = userDB[username];
+                if (u.deposits) {
+                    u.deposits.forEach((d, idx) => {
+                        if (d.status === 'pending') {
+                            pendingDeposits.push({ username, idx, ...d });
+                        }
+                    });
+                }
+                if (u.withdrawals) {
+                    u.withdrawals.forEach((w, idx) => {
+                        if (w.status === 'pending') {
+                            pendingWithdrawals.push({ username, idx, ...w });
+                        }
+                    });
+                }
+            });
+
+            // Enhanced pending requests display
+            if (pendingDeposits.length || pendingWithdrawals.length) {
+                html += `<div style='background:linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color:white; padding:1rem; border-radius:10px; margin-bottom:1.5rem;'>`;
+                html += `<h3 style='margin:0 0 1rem 0; display:flex; align-items:center;'><span style='font-size:1.5rem; margin-right:0.5rem;'>⚠️</span>Pending Requests (${pendingDeposits.length + pendingWithdrawals.length})</h3>`;
+                html += `</div>`;
+            }
+
+            if (pendingDeposits.length) {
+                html += `<div style='background:#e8f5e9; padding:1.5rem; border-radius:10px; margin-bottom:1.5rem;'>`;
+                html += `<h4 style='margin:0 0 1rem 0; color:#2e7d32; display:flex; align-items:center;'><span style='font-size:1.2rem; margin-right:0.5rem;'>💰</span>Pending Deposits (${pendingDeposits.length})</h4>`;
+
+                pendingDeposits.forEach(d => {
+                    html += `<div class='transaction-card pending' style='margin-bottom:1rem; background:white; padding:1.2rem; border-radius:8px; border-left:4px solid #ff9800;'>`;
+                    html += `<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;'>`;
+                    html += `<div>`;
+                    html += `<div style='font-weight:bold; font-size:1.1rem; color:#2d3e50;'>${d.username}</div>`;
+                    html += `<div style='color:#666; font-size:0.9rem; margin-top:0.2rem;'>${d.method} - ${d.amount} PKR</div>`;
+                    if (d.tid) html += `<div style='color:#666; font-size:0.8rem; font-family:monospace; background:#f5f5f5; padding:0.2rem 0.5rem; border-radius:4px; display:inline-block; margin-top:0.3rem;'>TID: ${d.tid}</div>`;
+                    if (d.date) html += `<div style='color:#666; font-size:0.8rem; margin-top:0.2rem;'>${new Date(d.date).toLocaleString()}</div>`;
+                    html += `</div>`;
+                    html += `<div style='display:flex; gap:0.5rem;'>`;
+                    html += `<button onclick='approveDeposit("${d.username}",${d.idx})' style='background:#4caf50; color:#fff; border:none; border-radius:6px; padding:0.6rem 1.2rem; cursor:pointer; font-weight:bold;'>✓ Approve</button>`;
+                    html += `<button onclick='rejectDeposit("${d.username}",${d.idx})' style='background:#f44336; color:#fff; border:none; border-radius:6px; padding:0.6rem 1.2rem; cursor:pointer; font-weight:bold;'>✗ Reject</button>`;
+                    html += `</div>`;
+                    html += `</div>`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            if (pendingWithdrawals.length) {
+                html += `<div style='background:#fce4ec; padding:1.5rem; border-radius:10px; margin-bottom:1.5rem;'>`;
+                html += `<h4 style='margin:0 0 1rem 0; color:#c2185b; display:flex; align-items:center;'><span style='font-size:1.2rem; margin-right:0.5rem;'>💸</span>Pending Withdrawals (${pendingWithdrawals.length})</h4>`;
+
+                pendingWithdrawals.forEach(w => {
+                    let userData = userDB[w.username] || {};
+                    html += `<div class='transaction-card pending' style='margin-bottom:1rem; background:white; padding:1.2rem; border-radius:8px; border-left:4px solid #f44336;'>`;
+                    html += `<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;'>`;
+                    html += `<div>`;
+                    html += `<div style='font-weight:bold; font-size:1.1rem; color:#2d3e50;'>${w.username}</div>`;
+                    html += `<div style='color:#666; font-size:0.9rem; margin-top:0.2rem;'>Amount: ${w.amount} PKR</div>`;
+                    html += `<div style='color:#666; font-size:0.9rem;'>Current Wallet: ${userData.wallet || 0} PKR</div>`;
+                    if (userData.boundAccount) {
+                        html += `<div style='color:#666; font-size:0.8rem; margin-top:0.3rem; background:#f5f5f5; padding:0.3rem 0.5rem; border-radius:4px;'>`;
+                        html += `${userData.boundAccount.method} - ${userData.boundAccount.name} - ${userData.boundAccount.number}`;
+                        html += `</div>`;
+                    }
+                    if (w.date) html += `<div style='color:#666; font-size:0.8rem; margin-top:0.2rem;'>${new Date(w.date).toLocaleString()}</div>`;
+                    html += `</div>`;
+                    html += `<div style='display:flex; gap:0.5rem;'>`;
+                    html += `<button onclick='approveWithdrawal("${w.username}",${w.idx})' style='background:#4caf50; color:#fff; border:none; border-radius:6px; padding:0.6rem 1.2rem; cursor:pointer; font-weight:bold;'>✓ Approve</button>`;
+                    html += `<button onclick='rejectWithdrawal("${w.username}",${w.idx})' style='background:#f44336; color:#fff; border:none; border-radius:6px; padding:0.6rem 1.2rem; cursor:pointer; font-weight:bold;'>✗ Reject</button>`;
+                    html += `</div>`;
+                    html += `</div>`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            if (!pendingDeposits.length && !pendingWithdrawals.length) {
+                html = `<div style='background:linear-gradient(135deg, #4caf50 0%, #45a049 100%); color:white; padding:1.5rem; border-radius:10px; margin-bottom:1.5rem; text-align:center;'>`;
+                html += `<div style='font-size:2rem; margin-bottom:0.5rem;'>✓</div>`;
+                html += `<div style='font-size:1.2rem; font-weight:bold;'>All Caught Up!</div>`;
+                html += `<div style='margin-top:0.5rem; opacity:0.9;'>No pending deposit or withdrawal requests.</div>`;
+                html += `</div>`;
+            }
+
+            document.getElementById('pending-requests-section').innerHTML = html;
+        }
+
+        async function approveDeposit(username, idx) {
+            try {
+                // Try database first
+                if (dbClient) {
+                    const result = await dbClient.approveDeposit(username, idx);
+                    if (result.success) {
+                        await loadUsers();
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('Database approve deposit failed, using localStorage fallback');
+            }
+
+            // Fallback to localStorage
+            let userDB = {};
+            try { userDB = JSON.parse(localStorage.getItem('userDB')) || {}; } catch (e) { userDB = {}; }
+            const d = userDB[username].deposits[idx];
+            d.status = 'approved';
+            userDB[username].wallet = (userDB[username].wallet || 0) + Number(d.amount);
+            localStorage.setItem('userDB', JSON.stringify(userDB));
+            await loadUsers();
+        }
+
+        async function rejectDeposit(username, idx) {
+            try {
+                // Try database first
+                if (dbClient) {
+                    const result = await dbClient.rejectDeposit(username, idx);
+                    if (result.success) {
+                        await loadUsers();
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('Database reject deposit failed, using localStorage fallback');
+            }
+
+            // Fallback to localStorage
+            let userDB = {};
+            try { userDB = JSON.parse(localStorage.getItem('userDB')) || {}; } catch (e) { userDB = {}; }
+            userDB[username].deposits[idx].status = 'rejected';
+            localStorage.setItem('userDB', JSON.stringify(userDB));
+            await loadUsers();
+        }
+
+        async function approveWithdrawal(username, idx) {
+            try {
+                // Try database first
+                if (dbClient) {
+                    const result = await dbClient.approveWithdrawal(username, idx);
+                    if (result.success) {
+                        await loadUsers();
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('Database approve withdrawal failed, using localStorage fallback');
+            }
+
+            // Fallback to localStorage
+            let userDB = {};
+            try { userDB = JSON.parse(localStorage.getItem('userDB')) || {}; } catch (e) { userDB = {}; }
+            userDB[username].withdrawals[idx].status = 'approved';
+            localStorage.setItem('userDB', JSON.stringify(userDB));
+            await loadUsers();
+        }
+
+        async function rejectWithdrawal(username, idx) {
+            try {
+                // Try database first
+                if (dbClient) {
+                    const result = await dbClient.rejectWithdrawal(username, idx);
+                    if (result.success) {
+                        await loadUsers();
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('Database reject withdrawal failed, using localStorage fallback');
+            }
+
+            // Fallback to localStorage
+            let userDB = {};
+            try { userDB = JSON.parse(localStorage.getItem('userDB')) || {}; } catch (e) { userDB = {}; }
+            // Refund wallet if rejected
+            const w = userDB[username].withdrawals[idx];
+            userDB[username].wallet = (userDB[username].wallet || 0) + Number(w.amount);
+            w.status = 'rejected';
+            localStorage.setItem('userDB', JSON.stringify(userDB));
+            await loadUsers();
+        }
+        function viewUserDetails(username) {
+            let userDB = {};
+            try {
+                userDB = JSON.parse(localStorage.getItem('userDB')) || {};
+            } catch (e) { userDB = {}; }
+            const u = userDB[username];
+            if (!u) return;
+
+            let html = `<h3 style='color:#2d3e50;'>${username} - Complete Profile</h3>`;
+
+            // Basic Info
+            html += `<div style='background:#f8f9fa; padding:1rem; border-radius:8px; margin-bottom:1rem;'>`;
+            html += `<h4 style='margin:0 0 0.5rem 0; color:#495057;'>📋 Basic Information</h4>`;
+            html += `<div style='margin-bottom:0.5rem;'><b>Phone:</b> ${u.phone || 'Not provided'}</div>`;
+            html += `<div style='margin-bottom:0.5rem;'><b>Join Date:</b> ${u.joinDate ? new Date(u.joinDate).toLocaleDateString() : 'Unknown'}</div>`;
+            html += `<div style='margin-bottom:0.5rem;'><b>Referral Code:</b> <span style='background:#e3f2fd; padding:0.2rem 0.5rem; border-radius:4px; font-family:monospace;'>${u.referralCode || 'None'}</span></div>`;
+            html += `<div style='margin-bottom:0.5rem;'><b>Referred By:</b> ${u.referredBy || 'Direct registration'}</div>`;
+            html += `<div style='margin-bottom:0.5rem;'><b>Wallet Balance:</b> <span style='color:#4caf50; font-weight:bold;'>${u.wallet || 0} PKR</span></div>`;
+            html += `<div style='margin-bottom:0.5rem;'><b>Current Plan:</b> <span style='color:#2196f3; font-weight:bold;'>${u.plan || 'None'} PKR</span></div>`;
+            html += `<div><b>First Plan Purchase:</b> ${u.firstPlanPurchase ? 'Yes (No more referral bonuses)' : 'No (Eligible for bonuses)'}</div>`;
+            html += `</div>`;
+
+            // Bound Account Info
+            if (u.boundAccount) {
+                html += `<div style='background:#e8f5e9; padding:1rem; border-radius:8px; margin-bottom:1rem;'>`;
+                html += `<h4 style='margin:0 0 0.5rem 0; color:#2e7d32;'>🏦 Bound Account Information</h4>`;
+                html += `<div style='margin-bottom:0.5rem;'><b>Method:</b> ${u.boundAccount.method || 'Not specified'}</div>`;
+                html += `<div style='margin-bottom:0.5rem;'><b>Account Name:</b> ${u.boundAccount.name || 'Not specified'}</div>`;
+                html += `<div><b>Account Number:</b> ${u.boundAccount.number || 'Not specified'}</div>`;
+                html += `</div>`;
+            }
+
+            // Team Reports
+            if (u.friends && u.friends.length > 0) {
+                html += `<div style='background:#fff3e0; padding:1rem; border-radius:8px; margin-bottom:1rem;'>`;
+                html += `<h4 style='margin:0 0 0.5rem 0; color:#f57c00;'>👥 Team Structure (${u.friends.length} Total)</h4>`;
+
+                // Group friends by level
+                let levelA = u.friends.filter(f => f.level === 'A');
+                let levelB = u.friends.filter(f => f.level === 'B');
+                let levelC = u.friends.filter(f => f.level === 'C');
+
+                html += `<div style='display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap;'>`;
+                html += `<div class='team-card level-a' style='flex:1; min-width:120px;'><div style='font-size:1.5rem; font-weight:bold;'>${levelA.length}</div><div>Level A Friends</div></div>`;
+                html += `<div class='team-card level-b' style='flex:1; min-width:120px;'><div style='font-size:1.5rem; font-weight:bold;'>${levelB.length}</div><div>Level B Friends</div></div>`;
+                html += `<div class='team-card level-c' style='flex:1; min-width:120px;'><div style='font-size:1.5rem; font-weight:bold;'>${levelC.length}</div><div>Level C Friends</div></div>`;
+                html += `</div>`;
+
+                // Detailed friend list
+                if (levelA.length > 0) {
+                    html += `<h5 style='color:#f57c00; margin:1rem 0 0.5rem 0;'>🥇 Level A Friends (10% Commission)</h5>`;
+                    levelA.forEach(friend => {
+                        let friendData = userDB[friend.username] || {};
+                        html += `<div style='background:white; padding:0.7rem; margin:0.3rem 0; border-radius:6px; border-left:4px solid #ffd700;'>`;
+                        html += `<b>${friend.username}</b> | Plan: ${friendData.plan || 'None'} PKR | Joined: ${friend.joinDate ? new Date(friend.joinDate).toLocaleDateString() : 'Unknown'}`;
+                        html += `</div>`;
+                    });
+                }
+
+                if (levelB.length > 0) {
+                    html += `<h5 style='color:#f57c00; margin:1rem 0 0.5rem 0;'>🥈 Level B Friends (5% Commission)</h5>`;
+                    levelB.forEach(friend => {
+                        let friendData = userDB[friend.username] || {};
+                        html += `<div style='background:white; padding:0.7rem; margin:0.3rem 0; border-radius:6px; border-left:4px solid #c0c0c0;'>`;
+                        html += `<b>${friend.username}</b> | Plan: ${friendData.plan || 'None'} PKR | Joined: ${friend.joinDate ? new Date(friend.joinDate).toLocaleDateString() : 'Unknown'}`;
+                        html += `</div>`;
+                    });
+                }
+
+                if (levelC.length > 0) {
+                    html += `<h5 style='color:#f57c00; margin:1rem 0 0.5rem 0;'>🥉 Level C Friends (1% Commission)</h5>`;
+                    levelC.forEach(friend => {
+                        let friendData = userDB[friend.username] || {};
+                        html += `<div style='background:white; padding:0.7rem; margin:0.3rem 0; border-radius:6px; border-left:4px solid #cd7f32;'>`;
+                        html += `<b>${friend.username}</b> | Plan: ${friendData.plan || 'None'} PKR | Joined: ${friend.joinDate ? new Date(friend.joinDate).toLocaleDateString() : 'Unknown'}`;
+                        html += `</div>`;
+                    });
+                }
+                html += `</div>`;
+            }
+
+            // Enhanced Deposits Section
+            html += `<div style='background:#e3f2fd; padding:1rem; border-radius:8px; margin-bottom:1rem;'>`;
+            html += `<h4 style='margin:0 0 0.5rem 0; color:#1976d2;'>💰 Deposit History</h4>`;
+            if (u.deposits && u.deposits.length) {
+                u.deposits.forEach((d, idx) => {
+                    let statusClass = `status-${d.status || 'pending'}`;
+                    html += `<div class='transaction-card ${d.status || 'pending'}' style='margin:0.5rem 0;'>`;
+                    html += `<div style='display:flex; justify-content:space-between; align-items:center;'>`;
+                    html += `<div><b>${d.method || 'Unknown'}</b> - ${d.amount || 0} PKR</div>`;
+                    html += `<span class='status-badge ${statusClass}'>${(d.status || 'pending').toUpperCase()}</span>`;
+                    html += `</div>`;
+                    if (d.tid) html += `<div style='font-size:0.9rem; color:#666; margin-top:0.3rem;'>TID: ${d.tid}</div>`;
+                    if (d.date) html += `<div style='font-size:0.9rem; color:#666;'>${new Date(d.date).toLocaleString()}</div>`;
+                    html += `</div>`;
+                });
+            } else {
+                html += `<div style='color:#666; font-style:italic;'>No deposits found</div>`;
+            }
+            html += `</div>`;
+
+            // Enhanced Withdrawals Section  
+            html += `<div style='background:#fce4ec; padding:1rem; border-radius:8px; margin-bottom:1rem;'>`;
+            html += `<h4 style='margin:0 0 0.5rem 0; color:#c2185b;'>💸 Withdrawal History</h4>`;
+            if (u.withdrawals && u.withdrawals.length) {
+                u.withdrawals.forEach((w, idx) => {
+                    let statusClass = `status-${w.status || 'pending'}`;
+                    html += `<div class='transaction-card ${w.status || 'pending'}' style='margin:0.5rem 0;'>`;
+                    html += `<div style='display:flex; justify-content:space-between; align-items:center;'>`;
+                    html += `<div><b>Withdrawal</b> - ${w.amount || 0} PKR</div>`;
+                    html += `<span class='status-badge ${statusClass}'>${(w.status || 'pending').toUpperCase()}</span>`;
+                    html += `</div>`;
+                    if (w.date) html += `<div style='font-size:0.9rem; color:#666; margin-top:0.3rem;'>${new Date(w.date).toLocaleString()}</div>`;
+                    html += `</div>`;
+                });
+            } else {
+                html += `<div style='color:#666; font-style:italic;'>No withdrawals found</div>`;
+            }
+            html += `</div>`;
+
+            // Tasks History
+            html += `<div style='background:#f3e5f5; padding:1rem; border-radius:8px; margin-bottom:1rem;'>`;
+            html += `<h4 style='margin:0 0 0.5rem 0; color:#7b1fa2;'>⚡ Task History</h4>`;
+            if (u.tasks && u.tasks.length) {
+                let totalEarnings = u.tasks.reduce((sum, t) => sum + (Number(t.earning) || 0), 0);
+                html += `<div style='margin-bottom:0.7rem; font-weight:bold; color:#7b1fa2;'>Total Task Earnings: ${totalEarnings} PKR</div>`;
+
+                // Show recent tasks (last 10)
+                let recentTasks = u.tasks.slice(-10).reverse();
+                recentTasks.forEach(t => {
+                    html += `<div style='background:white; padding:0.5rem; margin:0.3rem 0; border-radius:4px; display:flex; justify-content:space-between;'>`;
+                    html += `<span>+${t.earning || 0} PKR</span>`;
+                    html += `<span style='color:#666; font-size:0.9rem;'>${t.date ? new Date(t.date).toLocaleDateString() : 'Unknown'}</span>`;
+                    html += `</div>`;
+                });
+
+                if (u.tasks.length > 10) {
+                    html += `<div style='color:#666; font-style:italic; margin-top:0.5rem;'>Showing last 10 of ${u.tasks.length} total tasks</div>`;
+                }
+            } else {
+                html += `<div style='color:#666; font-style:italic;'>No tasks completed yet</div>`;
+            }
+            html += `</div>`;
+
+            document.getElementById('user-details-content').innerHTML = html;
+            document.getElementById('user-details-modal').style.display = 'flex';
+        }
+        function closeUserDetails() {
+            document.getElementById('user-details-modal').style.display = 'none';
+        }
+
+        function viewTeamStructure(username) {
+            let userDB = {};
+            try {
+                userDB = JSON.parse(localStorage.getItem('userDB')) || {};
+            } catch (e) { userDB = {}; }
+            const u = userDB[username];
+            if (!u) return;
+
+            let html = `<h3 style='color:#2d3e50;'>🌳 ${username}'s Team Structure</h3>`;
+
+            if (!u.friends || u.friends.length === 0) {
+                html += `<div style='text-align:center; color:#666; padding:2rem;'>`;
+                html += `<div style='font-size:3rem; margin-bottom:1rem;'>👥</div>`;
+                html += `<div style='font-size:1.2rem;'>No team members yet</div>`;
+                html += `<div style='margin-top:0.5rem;'>This user hasn't referred anyone.</div>`;
+                html += `</div>`;
+            } else {
+                // Group friends by level
+                let levelA = u.friends.filter(f => f.level === 'A');
+                let levelB = u.friends.filter(f => f.level === 'B');
+                let levelC = u.friends.filter(f => f.level === 'C');
+
+                // Team overview
+                html += `<div style='background:#f8f9fa; padding:1.5rem; border-radius:10px; margin-bottom:1.5rem;'>`;
+                html += `<h4 style='margin:0 0 1rem 0; color:#495057;'>📋 Team Overview</h4>`;
+                html += `<div style='display:flex; gap:1rem; flex-wrap:wrap;'>`;
+                html += `<div class='team-card level-a' style='flex:1; min-width:150px;'><div style='font-size:2rem; font-weight:bold;'>${levelA.length}</div><div>Level A (10%)</div></div>`;
+                html += `<div class='team-card level-b' style='flex:1; min-width:150px;'><div style='font-size:2rem; font-weight:bold;'>${levelB.length}</div><div>Level B (5%)</div></div>`;
+                html += `<div class='team-card level-c' style='flex:1; min-width:150px;'><div style='font-size:2rem; font-weight:bold;'>${levelC.length}</div><div>Level C (1%)</div></div>`;
+                html += `</div>`;
+                html += `</div>`;
+
+                // Referral tree visualization
+                html += `<div style='background:#fff; padding:1.5rem; border-radius:10px; margin-bottom:1.5rem; border:1px solid #e0e0e0;'>`;
+                html += `<h4 style='margin:0 0 1rem 0; color:#495057;'>🌲 Referral Tree</h4>`;
+                html += `<div class='referral-tree'>`;
+                html += `│\n├─ ${username} (Root)\n`;
+
+                // Build tree structure
+                if (levelA.length > 0) {
+                    levelA.forEach((friend, idx) => {
+                        let isLast = idx === levelA.length - 1 && levelB.length === 0 && levelC.length === 0;
+                        html += `│   ${isLast ? '└' : '├'}─ ${friend.username} [A] \ud83e�\n`;
+
+                        // Check if this A-level friend has B-level referrals
+                        let friendData = userDB[friend.username];
+                        if (friendData && friendData.friends) {
+                            let bFriends = friendData.friends.filter(f => f.level === 'A'); // These become B-level for root
+                            bFriends.forEach((bFriend, bIdx) => {
+                                let isBLast = bIdx === bFriends.length - 1;
+                                html += `│   │   ${isBLast ? '└' : '├'}─ ${bFriend.username} [B] \ud83e�\n`;
+
+                                // Check for C-level (B-friend's A-friends become C-level)
+                                let bFriendData = userDB[bFriend.username];
+                                if (bFriendData && bFriendData.friends) {
+                                    let cFriends = bFriendData.friends.filter(f => f.level === 'A');
+                                    cFriends.forEach((cFriend, cIdx) => {
+                                        let isCLast = cIdx === cFriends.length - 1;
+                                        html += `│   │   │   ${isCLast ? '└' : '├'}─ ${cFriend.username} [C] \ud83e�\n`;
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+
+                html += `</div></div>`;
+
+                // Detailed member information
+                if (levelA.length > 0) {
+                    html += `<div style='background:#fff8e1; padding:1.5rem; border-radius:10px; margin-bottom:1rem;'>`;
+                    html += `<h4 style='margin:0 0 1rem 0; color:#f57c00;'>🥇 Level A Members (10% Commission)</h4>`;
+                    levelA.forEach(friend => {
+                        let friendData = userDB[friend.username] || {};
+                        html += `<div style='background:white; padding:1rem; margin:0.5rem 0; border-radius:8px; border-left:4px solid #ffd700; display:flex; justify-content:space-between; align-items:center;'>`;
+                        html += `<div>`;
+                        html += `<div style='font-weight:bold; font-size:1.1rem;'>${friend.username}</div>`;
+                        html += `<div style='color:#666; font-size:0.9rem;'>Plan: ${friendData.plan || 'None'} PKR | Wallet: ${friendData.wallet || 0} PKR</div>`;
+                        html += `<div style='color:#666; font-size:0.9rem;'>Joined: ${friend.joinDate ? new Date(friend.joinDate).toLocaleDateString() : 'Unknown'}</div>`;
+                        html += `</div>`;
+                        html += `<button onclick='viewUserDetails("${friend.username}")' style='background:#009688; color:#fff; border:none; border-radius:4px; padding:0.5rem 1rem; cursor:pointer;'>View Details</button>`;
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                if (levelB.length > 0) {
+                    html += `<div style='background:#f3e5f5; padding:1.5rem; border-radius:10px; margin-bottom:1rem;'>`;
+                    html += `<h4 style='margin:0 0 1rem 0; color:#7b1fa2;'>🥈 Level B Members (5% Commission)</h4>`;
+                    levelB.forEach(friend => {
+                        let friendData = userDB[friend.username] || {};
+                        html += `<div style='background:white; padding:1rem; margin:0.5rem 0; border-radius:8px; border-left:4px solid #c0c0c0; display:flex; justify-content:space-between; align-items:center;'>`;
+                        html += `<div>`;
+                        html += `<div style='font-weight:bold; font-size:1.1rem;'>${friend.username}</div>`;
+                        html += `<div style='color:#666; font-size:0.9rem;'>Plan: ${friendData.plan || 'None'} PKR | Wallet: ${friendData.wallet || 0} PKR</div>`;
+                        html += `<div style='color:#666; font-size:0.9rem;'>Joined: ${friend.joinDate ? new Date(friend.joinDate).toLocaleDateString() : 'Unknown'}</div>`;
+                        html += `</div>`;
+                        html += `<button onclick='viewUserDetails("${friend.username}")' style='background:#009688; color:#fff; border:none; border-radius:4px; padding:0.5rem 1rem; cursor:pointer;'>View Details</button>`;
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                if (levelC.length > 0) {
+                    html += `<div style='background:#efebe9; padding:1.5rem; border-radius:10px; margin-bottom:1rem;'>`;
+                    html += `<h4 style='margin:0 0 1rem 0; color:#5d4037;'>🥉 Level C Members (1% Commission)</h4>`;
+                    levelC.forEach(friend => {
+                        let friendData = userDB[friend.username] || {};
+                        html += `<div style='background:white; padding:1rem; margin:0.5rem 0; border-radius:8px; border-left:4px solid #cd7f32; display:flex; justify-content:space-between; align-items:center;'>`;
+                        html += `<div>`;
+                        html += `<div style='font-weight:bold; font-size:1.1rem;'>${friend.username}</div>`;
+                        html += `<div style='color:#666; font-size:0.9rem;'>Plan: ${friendData.plan || 'None'} PKR | Wallet: ${friendData.wallet || 0} PKR</div>`;
+                        html += `<div style='color:#666; font-size:0.9rem;'>Joined: ${friend.joinDate ? new Date(friend.joinDate).toLocaleDateString() : 'Unknown'}</div>`;
+                        html += `</div>`;
+                        html += `<button onclick='viewUserDetails("${friend.username}")' style='background:#009688; color:#fff; border:none; border-radius:4px; padding:0.5rem 1rem; cursor:pointer;'>View Details</button>`;
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                }
+            }
+
+            document.getElementById('user-details-content').innerHTML = html;
+            document.getElementById('user-details-modal').style.display = 'flex';
+        }
+        // Store edits temporarily
+        let userEdits = {};
+        function updateUserField(username, field, value) {
+            if (!userEdits[username]) userEdits[username] = {};
+            userEdits[username][field] = value;
+        }
+
+        async function saveUserEdit(username) {
+            try {
+                // Try database first
+                if (dbClient) {
+                    const edits = userEdits[username] || {};
+                    const result = await dbClient.updateUser(username, edits);
+                    if (result.success) {
+                        userEdits[username] = {};
+                        await loadUsers();
+                        alert('User updated!');
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('Database user update failed, using localStorage fallback');
+            }
+
+            // Fallback to localStorage
+            let userDB = {};
+            try {
+                userDB = JSON.parse(localStorage.getItem('userDB')) || {};
+            } catch (e) { userDB = {}; }
+            if (!userDB[username]) return;
+            const edits = userEdits[username] || {};
+            Object.keys(edits).forEach(field => {
+                if (field === 'wallet' || field === 'plan') {
+                    userDB[username][field] = Number(edits[field]);
+                } else {
+                    userDB[username][field] = edits[field];
+                }
+            });
+            localStorage.setItem('userDB', JSON.stringify(userDB));
+            userEdits[username] = {};
+            await loadUsers();
+            alert('User updated!');
+        }
+
+        async function deleteUser(username) {
+            if (!confirm('Delete user ' + username + '?')) return;
+
+            try {
+                // Try database first
+                if (dbClient) {
+                    const result = await dbClient.deleteUser(username);
+                    if (result.success) {
+                        await loadUsers();
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('Database user delete failed, using localStorage fallback');
+            }
+
+            // Fallback to localStorage
+            let userDB = {};
+            try {
+                userDB = JSON.parse(localStorage.getItem('userDB')) || {};
+            } catch (e) { userDB = {}; }
+            delete userDB[username];
+            localStorage.setItem('userDB', JSON.stringify(userDB));
+            await loadUsers();
+        }
+
+        // Add referral bonus tracking function
+        function trackReferralBonuses() {
+            let userDB = {};
+            try {
+                userDB = JSON.parse(localStorage.getItem('userDB')) || {};
+            } catch (e) { userDB = {}; }
+
+            let html = `<h3 style='color:#2d3e50;'>🎁 Referral Bonus Tracking</h3>`;
+            html += `<div style='background:#f8f9fa; padding:1rem; border-radius:8px; margin-bottom:1rem;'>`;
+            html += `<p style='color:#666; margin:0;'>Track referral bonus distribution and first-purchase status across all users.</p>`;
+            html += `</div>`;
+
+            let bonusStats = { totalBonusPaid: 0, eligibleUsers: 0, firstPurchaseUsers: 0 };
+            let bonusDetails = [];
+
+            Object.keys(userDB).forEach(username => {
+                const u = userDB[username];
+                if (u.friends && u.friends.length > 0) {
+                    let userBonuses = 0;
+                    u.friends.forEach(friend => {
+                        let friendData = userDB[friend.username];
+                        if (friendData && friendData.plan && !friendData.firstPlanPurchase) {
+                            // This would be eligible for bonus
+                            if (friend.level === 'A') userBonuses += friendData.plan * 0.1;
+                            else if (friend.level === 'B') userBonuses += friendData.plan * 0.05;
+                            else if (friend.level === 'C') userBonuses += friendData.plan * 0.01;
+                        }
+                    });
+
+                    if (userBonuses > 0) {
+                        bonusDetails.push({ username, bonuses: userBonuses, teamSize: u.friends.length });
+                        bonusStats.totalBonusPaid += userBonuses;
+                        bonusStats.eligibleUsers++;
+                    }
+                }
+
+                if (u.firstPlanPurchase) {
+                    bonusStats.firstPurchaseUsers++;
+                }
+            });
+
+            // Display stats
+            html += `<div style='display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;'>`;
+            html += `<div class='dashboard-card' style='background:linear-gradient(135deg, #4caf50 0%, #45a049 100%); color:white; flex:1; min-width:150px;'>`;
+            html += `<div>${bonusStats.totalBonusPaid.toFixed(2)}</div><div>Total Bonuses (PKR)</div></div>`;
+            html += `<div class='dashboard-card' style='background:linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color:white; flex:1; min-width:150px;'>`;
+            html += `<div>${bonusStats.eligibleUsers}</div><div>Users with Teams</div></div>`;
+            html += `<div class='dashboard-card' style='background:linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color:white; flex:1; min-width:150px;'>`;
+            html += `<div>${bonusStats.firstPurchaseUsers}</div><div>First Purchase Done</div></div>`;
+            html += `</div>`;
+
+            if (bonusDetails.length > 0) {
+                html += `<div style='background:white; padding:1.5rem; border-radius:10px; border:1px solid #e0e0e0;'>`;
+                html += `<h4 style='margin:0 0 1rem 0; color:#2d3e50;'>Top Referrers</h4>`;
+                bonusDetails.sort((a, b) => b.bonuses - a.bonuses).slice(0, 10).forEach(detail => {
+                    html += `<div style='display:flex; justify-content:space-between; align-items:center; padding:0.8rem; background:#f8f9fa; margin:0.5rem 0; border-radius:6px;'>`;
+                    html += `<div><b>${detail.username}</b> (${detail.teamSize} team members)</div>`;
+                    html += `<div style='color:#4caf50; font-weight:bold;'>+${detail.bonuses.toFixed(2)} PKR</div>`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            document.getElementById('user-details-content').innerHTML = html;
+            document.getElementById('user-details-modal').style.display = 'flex';
+        }
+
+
+    </script>
+</body>
+
+</html>
